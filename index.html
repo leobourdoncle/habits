@@ -1,831 +1,840 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Daily Habits" />
-  <meta name="theme-color" content="#080810" />
-  <title>Daily Habits ⚡</title>
-  <style>
-    *, *::before, *::after {
-      margin: 0; padding: 0; box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    :root {
-      --bg:      #080810;
-      --surf:    #11111c;
-      --surf2:   #191928;
-      --border:  #262640;
-      --text:    #e2e8f4;
-      --muted:   #5b6080;
-      --accent:  #8b5cf6;
-      --accent2: #a78bfa;
-      --green:   #34d399;
-      --amber:   #fbbf24;
-      --red:     #f87171;
-      --cyan:    #22d3ee;
-      --pink:    #f472b6;
-    }
-    html { -webkit-text-size-adjust: 100%; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      min-height: 100vh;
-      line-height: 1.5;
-    }
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 40px);
-    }
-
-    /* ── HEADER ──────────────────────────────────── */
-    .header {
-      padding: 44px 0 24px;
-      text-align: center;
-      position: relative;
-    }
-    .header::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -16px; right: -16px; height: 200px;
-      background: radial-gradient(ellipse at 50% 0%,
-        rgba(139,92,246,.18) 0%, transparent 65%);
-      pointer-events: none;
-    }
-    .header-eyebrow {
-      font-size: 11px; font-weight: 700;
-      letter-spacing: 3px; text-transform: uppercase;
-      color: var(--accent2); margin-bottom: 8px;
-    }
-    .date-big {
-      font-size: 30px; font-weight: 800;
-      color: var(--text); line-height: 1.1;
-      letter-spacing: -0.5px;
-    }
-    .day-name {
-      font-size: 14px; color: var(--muted);
-      margin-top: 5px; font-weight: 500;
-    }
-    .streak-badge {
-      display: inline-block; margin-top: 12px;
-      background: linear-gradient(135deg,rgba(139,92,246,.2),rgba(244,114,182,.2));
-      border: 1px solid rgba(139,92,246,.35);
-      border-radius: 100px; padding: 5px 14px;
-      font-size: 12px; font-weight: 600; color: var(--accent2);
-    }
-
-    /* ── TAB BAR ─────────────────────────────────── */
-    .tab-bar {
-      display: flex;
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 4px; gap: 4px;
-      margin-bottom: 14px;
-    }
-    .tab-btn {
-      flex: 1; padding: 10px 8px;
-      border: none; border-radius: 10px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: all .2s;
-      background: transparent; color: var(--muted);
-      letter-spacing: .2px;
-    }
-    .tab-btn.active {
-      background: var(--surf2);
-      color: var(--text);
-      box-shadow: 0 2px 6px rgba(0,0,0,.35);
-    }
-
-    /* ── CARD ────────────────────────────────────── */
-    .card {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 20px; margin-bottom: 12px;
-    }
-    .card-header {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 16px;
-    }
-    .card-icon { font-size: 15px; }
-    .card-title {
-      font-size: 10.5px; font-weight: 700;
-      letter-spacing: 2px; text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    /* ── HABITS ──────────────────────────────────── */
-    .habit-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 0; border-bottom: 1px solid var(--border);
-      cursor: pointer; user-select: none;
-    }
-    .habit-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .habit-row:first-child { padding-top: 0; }
-    .habit-box {
-      flex-shrink: 0; width: 24px; height: 24px; border-radius: 7px;
-      border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      transition: all .22s cubic-bezier(.34,1.56,.64,1);
-    }
-    .habit-row.checked .habit-box {
-      background: var(--green); border-color: var(--green);
-      box-shadow: 0 0 14px rgba(52,211,153,.35);
-    }
-    .habit-box svg {
-      opacity: 0; transform: scale(.3);
-      transition: all .22s cubic-bezier(.34,1.56,.64,1);
-    }
-    .habit-row.checked .habit-box svg { opacity: 1; transform: scale(1); }
-    .habit-emoji { font-size: 18px; flex-shrink: 0; }
-    .habit-text {
-      font-size: 14px; font-weight: 500;
-      color: var(--text); transition: color .2s; line-height: 1.3;
-    }
-    .habit-row.checked .habit-text { color: var(--muted); text-decoration: line-through; }
-
-    /* ── TIMER ───────────────────────────────────── */
-    .timer-time {
-      text-align: center;
-      font-family: 'SF Mono', 'Courier New', monospace;
-      font-variant-numeric: tabular-nums;
-      font-weight: 700; letter-spacing: 1px;
-      margin: 4px 0 6px; transition: color .3s;
-    }
-    .run-time  { font-size: 56px; color: var(--cyan); }
-    .work-time { font-size: 50px; color: var(--accent2); }
-    .timer-time.goal-done { color: var(--green) !important; }
-    .timer-sub {
-      text-align: center; font-size: 12px;
-      color: var(--muted); margin-bottom: 14px;
-    }
-    .timer-sub strong { color: var(--text); }
-    .progress-track {
-      height: 5px; background: var(--surf2);
-      border-radius: 3px; overflow: hidden; margin-bottom: 16px;
-    }
-    .progress-fill { height: 100%; border-radius: 3px; transition: width .9s ease; }
-    .run-fill  { background: var(--cyan); }
-    .work-fill { background: linear-gradient(90deg, var(--accent), var(--pink)); }
-    .timer-btns { display: flex; gap: 10px; }
-    .t-btn {
-      flex: 1; padding: 13px 10px; border-radius: 12px; border: none;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-      transition: transform .1s, opacity .1s; letter-spacing: .2px;
-    }
-    .t-btn:active { transform: scale(.95); opacity: .8; }
-    .btn-go    { background: var(--green); color: #080810; }
-    .btn-pause { background: var(--amber); color: #080810; }
-    .btn-ghost { background: var(--surf2); color: var(--muted); border: 1px solid var(--border); }
-
-    /* ── SUMMARY ─────────────────────────────────── */
-    .summary-card {
-      background: linear-gradient(145deg, #161628 0%, #11111c 100%);
-      border: 1px solid var(--border); border-radius: 20px;
-      padding: 24px 20px 20px; margin-bottom: 12px; text-align: center;
-    }
-    .summary-pct { font-size: 58px; font-weight: 800; line-height: 1; transition: color .4s; }
-    .pct-zero { color: var(--muted); }
-    .pct-low  { color: var(--amber); }
-    .pct-mid  { color: var(--cyan); }
-    .pct-high {
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .summary-label { font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 4px; }
-    .summary-track {
-      height: 8px; background: var(--surf2);
-      border-radius: 4px; margin: 16px 0 10px; overflow: hidden;
-    }
-    .summary-fill-bar {
-      height: 100%; background: linear-gradient(90deg, var(--green), var(--cyan));
-      border-radius: 4px; transition: width .5s ease;
-    }
-    .summary-count { font-size: 13px; color: var(--muted); }
-    .perfect-msg { display: none; margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--green); }
-
-    /* ── ACTIONS ─────────────────────────────────── */
-    .actions { display: flex; gap: 10px; margin-bottom: 24px; }
-    .btn-save {
-      flex: 2; padding: 16px;
-      background: linear-gradient(135deg, var(--accent), var(--pink));
-      color: #fff; border: none; border-radius: 14px;
-      font-size: 15px; font-weight: 700; cursor: pointer;
-      transition: transform .1s; letter-spacing: .2px;
-    }
-    .btn-newday {
-      flex: 1; padding: 16px;
-      background: var(--surf); color: var(--text);
-      border: 1px solid var(--border); border-radius: 14px;
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: transform .1s; line-height: 1.4;
-    }
-    .btn-save:active, .btn-newday:active { transform: scale(.97); }
-
-    /* ── STATS PANEL ─────────────────────────────── */
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 10px; margin-bottom: 12px;
-    }
-    .stat-card {
-      background: var(--surf); border: 1px solid var(--border);
-      border-radius: 16px; padding: 18px 12px; text-align: center;
-    }
-    .stat-icon { font-size: 22px; margin-bottom: 8px; }
-    .stat-val  { font-size: 30px; font-weight: 800; line-height: 1; color: var(--text); margin-bottom: 5px; }
-    .stat-lbl  { font-size: 10.5px; color: var(--muted); font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
-
-    /* 7-day dots */
-    .week-wrap {
-      display: flex; justify-content: space-between; align-items: flex-end;
-    }
-    .week-day  { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
-    .week-dot  {
-      width: 36px; height: 36px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 700;
-    }
-    .week-dot-lbl { font-size: 10px; color: var(--muted); font-weight: 600; }
-
-    /* habit stat rows */
-    .hstat-row {
-      padding: 10px 0; border-bottom: 1px solid var(--border);
-    }
-    .hstat-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .hstat-row:first-child { padding-top: 0; }
-    .hstat-top {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 7px;
-    }
-    .hstat-left { display: flex; align-items: center; gap: 8px; }
-    .hstat-emoji { font-size: 16px; }
-    .hstat-name  { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
-    .hstat-pct   { font-size: 13px; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
-    .hstat-track { height: 4px; background: var(--surf2); border-radius: 2px; overflow: hidden; }
-    .hstat-fill  {
-      height: 100%; border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      transition: width .6s ease;
-    }
-
-    .no-data {
-      text-align: center; padding: 36px 16px;
-      color: var(--muted); font-size: 14px; line-height: 1.8;
-    }
-    .no-data-icon { font-size: 36px; display: block; margin-bottom: 10px; }
-
-    /* ── MODAL ───────────────────────────────────── */
-    .modal-wrap {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.65);
-      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-      z-index: 50; align-items: flex-end;
-      padding: 0 16px max(24px, env(safe-area-inset-bottom, 24px));
-    }
-    .modal-wrap.open { display: flex; }
-    .modal-box {
-      background: var(--surf2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 24px 20px 20px;
-      width: 100%; max-width: 440px; margin: 0 auto;
-      animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
-    }
-    @keyframes slideUp {
-      from { transform: translateY(50px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .modal-desc  { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
-    .modal-btns  { display: flex; gap: 10px; }
-    .modal-cancel {
-      flex: 1; padding: 14px; background: var(--surf); color: var(--text);
-      border: 1px solid var(--border); border-radius: 12px;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-    }
-    .modal-confirm {
-      flex: 1; padding: 14px; background: var(--accent); color: #fff;
-      border: none; border-radius: 12px;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-    }
-
-    /* ── TOAST ───────────────────────────────────── */
-    .toast {
-      position: fixed;
-      bottom: max(24px, env(safe-area-inset-bottom, 24px));
-      left: 50%; transform: translateX(-50%) translateY(calc(100% + 40px));
-      background: var(--surf2); border: 1px solid var(--border);
-      color: var(--text); padding: 11px 22px; border-radius: 100px;
-      font-size: 13px; font-weight: 500;
-      box-shadow: 0 8px 32px rgba(0,0,0,.45);
-      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
-      z-index: 999; white-space: nowrap; pointer-events: none;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-  </style>
-</head>
-<body>
-<div class="container">
-
-  <!-- ── HEADER (partagé entre les deux onglets) ── -->
-  <div class="header">
-    <div class="header-eyebrow">Aujourd'hui</div>
-    <div class="date-big" id="date-big"></div>
-    <div class="day-name"  id="day-name"></div>
-    <div class="streak-badge" id="streak-badge">⚡ La journée commence !</div>
-  </div>
-
-  <!-- ── TAB BAR ───────────────────────────────── -->
-  <div class="tab-bar">
-    <button class="tab-btn active" id="btn-tab-habits" onclick="switchTab('habits')">⚡ Habitudes</button>
-    <button class="tab-btn"        id="btn-tab-stats"  onclick="switchTab('stats')">📊 Statistiques</button>
-  </div>
-
-  <!-- ══════════════════════════════════════════ -->
-  <!-- PANEL : HABITUDES                          -->
-  <!-- ══════════════════════════════════════════ -->
-  <div id="panel-habits">
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-icon">⚡</span>
-        <span class="card-title">Habitudes du jour</span>
-      </div>
-      <div id="habits-container"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-icon">🏃</span>
-        <span class="card-title">Course matinale</span>
-      </div>
-      <div class="timer-time run-time" id="run-time">00:00</div>
-      <div class="timer-sub">Objectif : <strong>20 minutes</strong></div>
-      <div class="progress-track">
-        <div class="progress-fill run-fill" id="run-bar" style="width:0%"></div>
-      </div>
-      <div class="timer-btns">
-        <button class="t-btn btn-go"    id="run-btn"  onclick="toggleRun()">▶ Start</button>
-        <button class="t-btn btn-ghost"               onclick="resetRun()">↺ Reset</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-icon">💻</span>
-        <span class="card-title">Deep Work</span>
-      </div>
-      <div class="timer-time work-time" id="work-time">00:00:00</div>
-      <div class="timer-sub">Objectif : <strong>10 heures</strong> cumulées</div>
-      <div class="progress-track">
-        <div class="progress-fill work-fill" id="work-bar" style="width:0%"></div>
-      </div>
-      <div class="timer-btns">
-        <button class="t-btn btn-go"    id="work-btn" onclick="toggleWork()">▶ Start</button>
-        <button class="t-btn btn-ghost"               onclick="resetWork()">↺ Reset</button>
-      </div>
-    </div>
-
-    <div class="summary-card">
-      <div class="summary-pct pct-zero" id="summary-pct">0%</div>
-      <div class="summary-label">habitudes complétées aujourd'hui</div>
-      <div class="summary-track">
-        <div class="summary-fill-bar" id="summary-bar" style="width:0%"></div>
-      </div>
-      <div class="summary-count" id="summary-count">0 / 10 habitudes</div>
-      <div class="perfect-msg" id="perfect-msg">🔥 Journée parfaite ! Tu es inarrêtable !</div>
-    </div>
-
-    <div class="actions">
-      <button class="btn-save"   onclick="saveData()">💾 Sauvegarder</button>
-      <button class="btn-newday" onclick="openModal()">🌅 Nouvelle<br>journée</button>
-    </div>
-
-  </div><!-- /panel-habits -->
-
-  <!-- ══════════════════════════════════════════ -->
-  <!-- PANEL : STATISTIQUES                       -->
-  <!-- ══════════════════════════════════════════ -->
-  <div id="panel-stats" style="display:none">
-
-    <!-- Métriques globales -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">📅</div>
-        <div class="stat-val" id="s-days">—</div>
-        <div class="stat-lbl">Jours trackés</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🔥</div>
-        <div class="stat-val" id="s-streak">—</div>
-        <div class="stat-lbl">Streak actuel</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🏆</div>
-        <div class="stat-val" id="s-best">—</div>
-        <div class="stat-lbl">Meilleure série</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <div class="stat-val" id="s-avg">—</div>
-        <div class="stat-lbl">Complétion moy.</div>
-      </div>
-    </div>
-
-    <!-- 7 derniers jours -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-icon">🗓</span>
-        <span class="card-title">7 derniers jours</span>
-      </div>
-      <div class="week-wrap" id="week-dots"></div>
-    </div>
-
-    <!-- Par habitude -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-icon">📈</span>
-        <span class="card-title">Par habitude — depuis le début</span>
-      </div>
-      <div id="habit-stats"></div>
-    </div>
-
-  </div><!-- /panel-stats -->
-
-</div><!-- /container -->
-
-<!-- Modal Nouvelle journée -->
-<div class="modal-wrap" id="modal" onclick="onModalBgClick(event)">
-  <div class="modal-box">
-    <div class="modal-title">🌅 Nouvelle journée</div>
-    <div class="modal-desc">
-      Toutes les cases seront décochées et les deux chronos remis à zéro.<br>
-      Cette action est irréversible.
-    </div>
-    <div class="modal-btns">
-      <button class="modal-cancel"  onclick="closeModal()">Annuler</button>
-      <button class="modal-confirm" onclick="confirmNewDay()">C'est parti !</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ── CONFIG ───────────────────────────────────────── */
-const HABITS = [
-  { emoji:'🔥', label:'NoFap' },
-  { emoji:'🏃', label:'Course matinale 20 min' },
-  { emoji:'💆', label:'Mewing + Soin peau' },
-  { emoji:'💇', label:'Soin cheveux' },
-  { emoji:'💻', label:'10 heures de Deep Work' },
-  { emoji:'🎯', label:'Minimum 3 approches femmes' },
-  { emoji:'🎬', label:'Vidéo 10 minutes' },
-  { emoji:'💪', label:'Sport / Salle (tous les 2 jours)' },
-  { emoji:'🧹', label:'Rangement / Ménage (soir)' },
-  { emoji:'📋', label:'Planification du lendemain (soir)' },
-];
-const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-const DAYS_S = ['Di','Lu','Ma','Me','Je','Ve','Sa'];
-const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet',
-                'août','septembre','octobre','novembre','décembre'];
-const RUN_GOAL  = 1200;  // 20 min
-const WORK_GOAL = 36000; // 10 h
-
-/* ── STATE ────────────────────────────────────────── */
-let states  = HABITS.map(() => false);
-let runSec  = 0, runOn  = false, runTid  = null;
-let workSec = 0, workOn = false, workTid = null;
-
-/* ── INIT ─────────────────────────────────────────── */
-function init() {
-  const now = new Date();
-  document.getElementById('date-big').textContent =
-    `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-  document.getElementById('day-name').textContent = DAYS[now.getDay()];
-  loadData();
-  renderHabits();
-  refreshRunDisplay();
-  refreshWorkDisplay();
-  refreshSummary();
-}
-
-/* ── TABS ─────────────────────────────────────────── */
-function switchTab(tab) {
-  const habits = tab === 'habits';
-  document.getElementById('panel-habits').style.display = habits ? '' : 'none';
-  document.getElementById('panel-stats').style.display  = habits ? 'none' : '';
-  document.getElementById('btn-tab-habits').classList.toggle('active',  habits);
-  document.getElementById('btn-tab-stats').classList.toggle('active', !habits);
-  if (!habits) { saveData(true); renderStats(); }
-}
-
-/* ── HABITS ───────────────────────────────────────── */
-function renderHabits() {
-  document.getElementById('habits-container').innerHTML = HABITS.map((h, i) => `
-    <div class="habit-row ${states[i] ? 'checked' : ''}" onclick="toggleHabit(${i})">
-      <div class="habit-box">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <polyline points="2,6.5 5,9.5 11,3" stroke="#080810"
-            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <span class="habit-emoji">${h.emoji}</span>
-      <span class="habit-text">${h.label}</span>
-    </div>`).join('');
-}
-
-function toggleHabit(i) {
-  states[i] = !states[i];
-  document.getElementById('habits-container').children[i]
-    .classList.toggle('checked', states[i]);
-  if (navigator.vibrate) navigator.vibrate(25);
-  refreshSummary();
-}
-
-function refreshSummary() {
-  const done  = states.filter(Boolean).length;
-  const total = states.length;
-  const pct   = Math.round(done / total * 100);
-  const el    = document.getElementById('summary-pct');
-  el.textContent = pct + '%';
-  el.className   = 'summary-pct ' +
-    (pct === 0 ? 'pct-zero' : pct < 40 ? 'pct-low' : pct < 80 ? 'pct-mid' : 'pct-high');
-  document.getElementById('summary-bar').style.width  = pct + '%';
-  document.getElementById('summary-count').textContent = `${done} / ${total} habitudes`;
-  const badge   = document.getElementById('streak-badge');
-  const perfect = document.getElementById('perfect-msg');
-  if (pct === 100) {
-    badge.textContent   = '🏆 Journée parfaite !';
-    perfect.style.display = 'block';
-  } else if (pct >= 70) {
-    badge.textContent   = '🔥 En feu ! Continue !';
-    perfect.style.display = 'none';
-  } else if (pct >= 40) {
-    badge.textContent   = '💪 Bonne dynamique !';
-    perfect.style.display = 'none';
-  } else {
-    badge.textContent   = '⚡ La journée commence !';
-    perfect.style.display = 'none';
-  }
-}
-
-/* ── RUN TIMER ────────────────────────────────────── */
-function toggleRun() {
-  if (runSec >= RUN_GOAL) return;
-  if (runOn) { clearInterval(runTid); runOn = false; setRunBtn('go'); }
-  else {
-    runOn = true; setRunBtn('pause');
-    runTid = setInterval(() => {
-      runSec++; refreshRunDisplay();
-      if (runSec >= RUN_GOAL) {
-        clearInterval(runTid); runOn = false; setRunBtn('done');
-        showToast('🏃 20 min terminées ! Objectif atteint !');
-        if (navigator.vibrate) navigator.vibrate([100,60,100]);
+ <!DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Daily Habits" />
+    <meta name="theme-color" content="#080810" />
+    <title>Daily Habits ⚡</title>
+    <style>
+      *, *::before, *::after {
+        margin: 0; padding: 0; box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
       }
-    }, 1000);
-  }
-}
-function refreshRunDisplay() {
-  const el = document.getElementById('run-time');
-  el.textContent = p2(Math.floor(runSec/60)) + ':' + p2(runSec%60);
-  el.classList.toggle('goal-done', runSec >= RUN_GOAL);
-  document.getElementById('run-bar').style.width =
-    Math.min(100, runSec / RUN_GOAL * 100) + '%';
-}
-function resetRun() {
-  clearInterval(runTid); runOn = false; runSec = 0;
-  setRunBtn('go'); refreshRunDisplay();
-}
-function setRunBtn(s) {
-  const b = document.getElementById('run-btn');
-  if (s==='go')    { b.className='t-btn btn-go';    b.textContent='▶ Start'; }
-  if (s==='pause') { b.className='t-btn btn-pause'; b.textContent='⏸ Stop';  }
-  if (s==='done')  { b.className='t-btn btn-go';    b.textContent='✓ 20min !'; }
-}
-
-/* ── WORK TIMER ───────────────────────────────────── */
-function toggleWork() {
-  if (workSec >= WORK_GOAL) return;
-  if (workOn) { clearInterval(workTid); workOn = false; setWorkBtn('go'); }
-  else {
-    workOn = true; setWorkBtn('pause');
-    workTid = setInterval(() => {
-      workSec++; refreshWorkDisplay();
-      if (workSec >= WORK_GOAL) {
-        clearInterval(workTid); workOn = false; setWorkBtn('done');
-        showToast('💻 10 heures de Deep Work ! Légendaire !');
-        if (navigator.vibrate) navigator.vibrate([200,80,200,80,200]);
+      :root {
+        --bg:      #080810;
+        --surf:    #11111c;
+        --surf2:   #191928;
+        --border:  #262640;
+        --text:    #e2e8f4;
+        --muted:   #5b6080;
+        --accent:  #8b5cf6;
+        --accent2: #a78bfa;
+        --green:   #34d399;
+        --amber:   #fbbf24;
+        --red:     #f87171;
+        --cyan:    #22d3ee;
+        --pink:    #f472b6;
       }
-    }, 1000);
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        min-height: 100vh;
+        line-height: 1.5;
+      }
+      .container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 40px);
+      }
+
+      /* ── HEADER ──────────────────────────────────── */
+      .header {
+        padding: 44px 0 24px;
+        text-align: center;
+        position: relative;
+      }
+      .header::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -16px; right: -16px; height: 200px;
+        background: radial-gradient(ellipse at 50% 0%,
+          rgba(139,92,246,.18) 0%, transparent 65%);
+        pointer-events: none;
+      }
+      .header-eyebrow {
+        font-size: 11px; font-weight: 700;
+        letter-spacing: 3px; text-transform: uppercase;
+        color: var(--accent2); margin-bottom: 8px;
+      }
+      .date-big {
+        font-size: 30px; font-weight: 800;
+        color: var(--text); line-height: 1.1;
+        letter-spacing: -0.5px;
+      }
+      .day-name {
+        font-size: 14px; color: var(--muted);
+        margin-top: 5px; font-weight: 500;
+      }
+      .streak-badge {
+        display: inline-block; margin-top: 12px;
+        background: linear-gradient(135deg,rgba(139,92,246,.2),rgba(244,114,182,.2));
+        border: 1px solid rgba(139,92,246,.35);
+        border-radius: 100px; padding: 5px 14px;
+        font-size: 12px; font-weight: 600; color: var(--accent2);
+      }
+
+      /* ── TAB BAR ─────────────────────────────────── */
+      .tab-bar {
+        display: flex;
+        background: var(--surf);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 4px; gap: 4px;
+        margin-bottom: 14px;
+      }
+      .tab-btn {
+        flex: 1; padding: 10px 8px;
+        border: none; border-radius: 10px;
+        font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: all .2s;
+        background: transparent; color: var(--muted);
+        letter-spacing: .2px;
+      }
+      .tab-btn.active {
+        background: var(--surf2);
+        color: var(--text);
+        box-shadow: 0 2px 6px rgba(0,0,0,.35);
+      }
+
+      /* ── CARD ────────────────────────────────────── */
+      .card {
+        background: var(--surf);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 20px; margin-bottom: 12px;
+      }
+      .card-header {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 16px;
+      }
+      .card-icon { font-size: 15px; }
+      .card-title {
+        font-size: 10.5px; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ── HABITS ──────────────────────────────────── */
+      .habit-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 11px 0; border-bottom: 1px solid var(--border);
+        cursor: pointer; user-select: none;
+      }
+      .habit-row:last-child { border-bottom: none; padding-bottom: 0; }
+      .habit-row:first-child { padding-top: 0; }
+      .habit-box {
+        flex-shrink: 0; width: 24px; height: 24px; border-radius: 7px;
+        border: 2px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        transition: all .22s cubic-bezier(.34,1.56,.64,1);
+      }
+      .habit-row.checked .habit-box {
+        background: var(--green); border-color: var(--green);
+        box-shadow: 0 0 14px rgba(52,211,153,.35);
+      }
+      .habit-box svg {
+        opacity: 0; transform: scale(.3);
+        transition: all .22s cubic-bezier(.34,1.56,.64,1);
+      }
+      .habit-row.checked .habit-box svg { opacity: 1; transform: scale(1); }
+      .habit-emoji { font-size: 18px; flex-shrink: 0; }
+      .habit-text {
+        font-size: 14px; font-weight: 500;
+        color: var(--text); transition: color .2s; line-height: 1.3;
+      }
+      .habit-row.checked .habit-text { color: var(--muted); text-decoration: line-through; }
+
+      /* ── TIMER ───────────────────────────────────── */
+      .timer-time {
+        text-align: center;
+        font-family: 'SF Mono', 'Courier New', monospace;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700; letter-spacing: 1px;
+        margin: 4px 0 6px; transition: color .3s;
+      }
+      .run-time  { font-size: 56px; color: var(--cyan); }
+      .work-time { font-size: 50px; color: var(--accent2); }
+      .timer-time.goal-done { color: var(--green) !important; }
+      .timer-sub {
+        text-align: center; font-size: 12px;
+        color: var(--muted); margin-bottom: 14px;
+      }
+      .timer-sub strong { color: var(--text); }
+      .progress-track {
+        height: 5px; background: var(--surf2);
+        border-radius: 3px; overflow: hidden; margin-bottom: 16px;
+      }
+      .progress-fill { height: 100%; border-radius: 3px; transition: width .9s ease; }
+      .run-fill  { background: var(--cyan); }
+      .work-fill { background: linear-gradient(90deg, var(--accent), var(--pink)); }
+      .timer-btns { display: flex; gap: 10px; }
+      .t-btn {
+        flex: 1; padding: 13px 10px; border-radius: 12px; border: none;
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        transition: transform .1s, opacity .1s; letter-spacing: .2px;
+      }
+      .t-btn:active { transform: scale(.95); opacity: .8; }
+      .btn-go    { background: var(--green); color: #080810; }
+      .btn-pause { background: var(--amber); color: #080810; }
+      .btn-ghost { background: var(--surf2); color: var(--muted); border: 1px solid var(--border); }
+
+      /* ── SUMMARY ─────────────────────────────────── */
+      .summary-card {
+        background: linear-gradient(145deg, #161628 0%, #11111c 100%);
+        border: 1px solid var(--border); border-radius: 20px;
+        padding: 24px 20px 20px; margin-bottom: 12px; text-align: center;
+      }
+      .summary-pct { font-size: 58px; font-weight: 800; line-height: 1; transition: color .4s; }
+      .pct-zero { color: var(--muted); }
+      .pct-low  { color: var(--amber); }
+      .pct-mid  { color: var(--cyan); }
+      .pct-high {
+        background: linear-gradient(135deg, var(--green), var(--cyan));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .summary-label { font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 4px; }
+      .summary-track {
+        height: 8px; background: var(--surf2);
+        border-radius: 4px; margin: 16px 0 10px; overflow: hidden;
+      }
+      .summary-fill-bar {
+        height: 100%; background: linear-gradient(90deg, var(--green), var(--cyan));
+        border-radius: 4px; transition: width .5s ease;
+      }
+      .summary-count { font-size: 13px; color: var(--muted); }
+      .perfect-msg { display: none; margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--green); }
+
+      /* ── ACTIONS ─────────────────────────────────── */
+      .actions { display: flex; gap: 10px; margin-bottom: 24px; }
+      .btn-save {
+        flex: 2; padding: 16px;
+        background: linear-gradient(135deg, var(--accent), var(--pink));
+        color: #fff; border: none; border-radius: 14px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        transition: transform .1s; letter-spacing: .2px;
+      }
+      .btn-newday {
+        flex: 1; padding: 16px;
+        background: var(--surf); color: var(--text);
+        border: 1px solid var(--border); border-radius: 14px;
+        font-size: 13px; font-weight: 600; cursor: pointer;
+        transition: transform .1s; line-height: 1.4;
+      }
+      .btn-save:active, .btn-newday:active { transform: scale(.97); }
+
+      /* ── STATS PANEL ─────────────────────────────── */
+      .stats-grid {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 10px; margin-bottom: 12px;
+      }
+      .stat-card {
+        background: var(--surf); border: 1px solid var(--border);
+        border-radius: 16px; padding: 18px 12px; text-align: center;
+      }
+      .stat-icon { font-size: 22px; margin-bottom: 8px; }
+      .stat-val  { font-size: 30px; font-weight: 800; line-height: 1; color: var(--text); margin-bottom: 5px; }
+      .stat-lbl  { font-size: 10.5px; color: var(--muted); font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+
+      /* 7-day dots */
+      .week-wrap {
+        display: flex; justify-content: space-between; align-items: flex-end;
+      }
+      .week-day  { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+      .week-dot  {
+        width: 36px; height: 36px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 10px; font-weight: 700;
+      }
+      .week-dot-lbl { font-size: 10px; color: var(--muted); font-weight: 600; }
+
+      /* habit stat rows */
+      .hstat-row {
+        padding: 10px 0; border-bottom: 1px solid var(--border);
+      }
+      .hstat-row:last-child { border-bottom: none; padding-bottom: 0; }
+      .hstat-row:first-child { padding-top: 0; }
+      .hstat-top {
+        display: flex; align-items: center;
+        justify-content: space-between; margin-bottom: 7px;
+      }
+      .hstat-left { display: flex; align-items: center; gap: 8px; }
+      .hstat-emoji { font-size: 16px; }
+      .hstat-name  { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+      .hstat-pct   { font-size: 13px; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
+      .hstat-track { height: 4px; background: var(--surf2); border-radius: 2px; overflow: hidden; }
+      .hstat-fill  {
+        height: 100%; border-radius: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        transition: width .6s ease;
+      }
+
+      .no-data {
+        text-align: center; padding: 36px 16px;
+        color: var(--muted); font-size: 14px; line-height: 1.8;
+      }
+      .no-data-icon { font-size: 36px; display: block; margin-bottom: 10px; }
+
+      /* ── MODAL ───────────────────────────────────── */
+      .modal-wrap {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.65);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        z-index: 50; align-items: flex-end;
+        padding: 0 16px max(24px, env(safe-area-inset-bottom, 24px));
+      }
+      .modal-wrap.open { display: flex; }
+      .modal-box {
+        background: var(--surf2); border: 1px solid var(--border);
+        border-radius: 20px; padding: 24px 20px 20px;
+        width: 100%; max-width: 440px; margin: 0 auto;
+        animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+      }
+      @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+      }
+      .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+      .modal-desc  { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+      .modal-btns  { display: flex; gap: 10px; }
+      .modal-cancel {
+        flex: 1; padding: 14px; background: var(--surf); color: var(--text);
+        border: 1px solid var(--border); border-radius: 12px;
+        font-size: 14px; font-weight: 600; cursor: pointer;
+      }
+      .modal-confirm {
+        flex: 1; padding: 14px; background: var(--accent); color: #fff;
+        border: none; border-radius: 12px;
+        font-size: 14px; font-weight: 700; cursor: pointer;
+      }
+
+      /* ── TOAST ───────────────────────────────────── */
+      .toast {
+        position: fixed;
+        bottom: max(24px, env(safe-area-inset-bottom, 24px));
+        left: 50%; transform: translateX(-50%) translateY(calc(100% + 40px));
+        background: var(--surf2); border: 1px solid var(--border);
+        color: var(--text); padding: 11px 22px; border-radius: 100px;
+        font-size: 13px; font-weight: 500;
+        box-shadow: 0 8px 32px rgba(0,0,0,.45);
+        transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+        z-index: 999; white-space: nowrap; pointer-events: none;
+      }
+      .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+  </head>
+  <body>
+  <div class="container">
+
+    <div class="header">
+      <div class="header-eyebrow">Aujourd'hui</div>
+      <div class="date-big" id="date-big"></div>
+      <div class="day-name"  id="day-name"></div>
+      <div class="streak-badge" id="streak-badge">⚡ La journée commence !</div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" id="btn-tab-habits" onclick="switchTab('habits')">⚡ Habitudes</button>
+      <button class="tab-btn"        id="btn-tab-stats"  onclick="switchTab('stats')">📊 Statistiques</button>
+    </div>
+
+    <div id="panel-habits">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <span class="card-title">Habitudes du jour</span>
+        </div>
+        <div id="habits-container"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🏃</span>
+          <span class="card-title">Course matinale</span>
+        </div>
+        <div class="timer-time run-time" id="run-time">00:00</div>
+        <div class="timer-sub">Objectif : <strong>20 minutes</strong></div>
+        <div class="progress-track">
+          <div class="progress-fill run-fill" id="run-bar" style="width:0%"></div>
+        </div>
+        <div class="timer-btns">
+          <button class="t-btn btn-go"    id="run-btn"  onclick="toggleRun()">▶ Start</button>
+          <button class="t-btn btn-ghost"               onclick="resetRun()">↺ Reset</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">💻</span>
+          <span class="card-title">Deep Work</span>
+        </div>
+        <div class="timer-time work-time" id="work-time">00:00:00</div>
+        <div class="timer-sub">Objectif : <strong>10 heures</strong> cumulées</div>
+        <div class="progress-track">
+          <div class="progress-fill work-fill" id="work-bar" style="width:0%"></div>
+        </div>
+        <div class="timer-btns">
+          <button class="t-btn btn-go"    id="work-btn" onclick="toggleWork()">▶ Start</button>
+          <button class="t-btn btn-ghost"               onclick="resetWork()">↺ Reset</button>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-pct pct-zero" id="summary-pct">0%</div>
+        <div class="summary-label">habitudes complétées aujourd'hui</div>
+        <div class="summary-track">
+          <div class="summary-fill-bar" id="summary-bar" style="width:0%"></div>
+        </div>
+        <div class="summary-count" id="summary-count">0 / 10 habitudes</div>
+        <div class="perfect-msg" id="perfect-msg">🔥 Journée parfaite ! Tu es inarrêtable !</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-save"   onclick="saveData()">💾 Sauvegarder</button>
+        <button class="btn-newday" onclick="openModal()">🌅 Nouvelle<br>journée</button>
+      </div>
+    </div>
+
+    <div id="panel-stats" style="display:none">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-val" id="s-days">—</div>
+          <div class="stat-lbl">Jours trackés</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-val" id="s-streak">—</div>
+          <div class="stat-lbl">Streak actuel</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-val" id="s-best">—</div>
+          <div class="stat-lbl">Meilleure série</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-val" id="s-avg">—</div>
+          <div class="stat-lbl">Complétion moy.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗓</span>
+          <span class="card-title">7 derniers jours</span>
+        </div>
+        <div class="week-wrap" id="week-dots"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📈</span>
+          <span class="card-title">Par habitude — depuis le début</span>
+        </div>
+        <div id="habit-stats"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-wrap" id="modal" onclick="onModalBgClick(event)">
+    <div class="modal-box">
+      <div class="modal-title">🌅 Nouvelle journée</div>
+      <div class="modal-desc">
+        Toutes les cases seront décochées et les deux chronos remis à zéro.<br>
+        Cette action est irréversible.
+      </div>
+      <div class="modal-btns">
+        <button class="modal-cancel"  onclick="closeModal()">Annuler</button>
+        <button class="modal-confirm" onclick="confirmNewDay()">C'est parti !</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  const HABITS = [
+    { emoji:'🔥', label:'NoFap' },
+    { emoji:'🏃', label:'Course matinale 20 min' },
+    { emoji:'💆', label:'Mewing + Soin peau' },
+    { emoji:'💇', label:'Soin cheveux' },
+    { emoji:'💻', label:'10 heures de Deep Work' },
+    { emoji:'🎯', label:'Minimum 3 approches femmes' },
+    { emoji:'🎬', label:'Vidéo 10 minutes' },
+    { emoji:'💪', label:'Sport / Salle (tous les 2 jours)' },
+    { emoji:'🧹', label:'Rangement / Ménage (soir)' },
+    { emoji:'📋', label:'Planification du lendemain (soir)' },
+  ];
+  const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const DAYS_S = ['Di','Lu','Ma','Me','Je','Ve','Sa'];
+  const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet',
+                  'août','septembre','octobre','novembre','décembre'];
+  const RUN_GOAL  = 1200;
+  const WORK_GOAL = 36000;
+
+  let states  = HABITS.map(() => false);
+  let runSec  = 0, runOn  = false, runTid  = null, runStartedAt  = null;
+  let workSec = 0, workOn = false, workTid = null, workStartedAt = null;
+
+  function getRunSec() {
+    if (runOn && runStartedAt !== null)
+      return Math.min(RUN_GOAL, runSec + Math.floor((Date.now() - runStartedAt) / 1000));
+    return runSec;
   }
-}
-function refreshWorkDisplay() {
-  const h = Math.floor(workSec/3600);
-  const m = Math.floor((workSec%3600)/60);
-  const el = document.getElementById('work-time');
-  el.textContent = p2(h)+':'+p2(m)+':'+p2(workSec%60);
-  el.classList.toggle('goal-done', workSec >= WORK_GOAL);
-  document.getElementById('work-bar').style.width =
-    Math.min(100, workSec / WORK_GOAL * 100) + '%';
-}
-function resetWork() {
-  clearInterval(workTid); workOn = false; workSec = 0;
-  setWorkBtn('go'); refreshWorkDisplay();
-}
-function setWorkBtn(s) {
-  const b = document.getElementById('work-btn');
-  if (s==='go')    { b.className='t-btn btn-go';    b.textContent='▶ Start'; }
-  if (s==='pause') { b.className='t-btn btn-pause'; b.textContent='⏸ Pause'; }
-  if (s==='done')  { b.className='t-btn btn-go';    b.textContent='✓ 10h !'; }
-}
+  function getWorkSec() {
+    if (workOn && workStartedAt !== null)
+      return Math.min(WORK_GOAL, workSec + Math.floor((Date.now() - workStartedAt) / 1000));
+    return workSec;
+  }
 
-/* ── STORAGE ──────────────────────────────────────── */
-function todayKey() {
-  const d = new Date();
-  return `dh_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
-}
-function saveData(silent = false) {
-  localStorage.setItem(todayKey(), JSON.stringify({ states, runSec, workSec }));
-  if (!silent) showToast('✅ Données sauvegardées !');
-}
-function loadData() {
-  try {
-    const raw = localStorage.getItem(todayKey());
-    if (!raw) return;
-    const d = JSON.parse(raw);
-    if (Array.isArray(d.states) && d.states.length === HABITS.length) states = d.states;
-    if (typeof d.runSec  === 'number') runSec  = d.runSec;
-    if (typeof d.workSec === 'number') workSec = d.workSec;
-    if (runSec  >= RUN_GOAL)  setRunBtn('done');
-    if (workSec >= WORK_GOAL) setWorkBtn('done');
-  } catch(e) {}
-}
+  function init() {
+    const now = new Date();
+    document.getElementById('date-big').textContent =
+      `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+    document.getElementById('day-name').textContent = DAYS[now.getDay()];
+    loadData();
+    renderHabits();
+    refreshRunDisplay();
+    refreshWorkDisplay();
+    refreshSummary();
+  }
 
-/* ── STATS ────────────────────────────────────────── */
-function loadAllEntries() {
-  const entries = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (!k || !k.startsWith('dh_')) continue;
+  function switchTab(tab) {
+    const habits = tab === 'habits';
+    document.getElementById('panel-habits').style.display = habits ? '' : 'none';
+    document.getElementById('panel-stats').style.display  = habits ? 'none' : '';
+    document.getElementById('btn-tab-habits').classList.toggle('active',  habits);
+    document.getElementById('btn-tab-stats').classList.toggle('active', !habits);
+    if (!habits) { saveData(true); renderStats(); }
+  }
+
+  function renderHabits() {
+    document.getElementById('habits-container').innerHTML = HABITS.map((h, i) => `
+      <div class="habit-row ${states[i] ? 'checked' : ''}" onclick="toggleHabit(${i})">
+        <div class="habit-box">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <polyline points="2,6.5 5,9.5 11,3" stroke="#080810"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="habit-emoji">${h.emoji}</span>
+        <span class="habit-text">${h.label}</span>
+      </div>`).join('');
+  }
+
+  function toggleHabit(i) {
+    states[i] = !states[i];
+    document.getElementById('habits-container').children[i]
+      .classList.toggle('checked', states[i]);
+    if (navigator.vibrate) navigator.vibrate(25);
+    refreshSummary();
+  }
+
+  function refreshSummary() {
+    const done  = states.filter(Boolean).length;
+    const total = states.length;
+    const pct   = Math.round(done / total * 100);
+    const el    = document.getElementById('summary-pct');
+    el.textContent = pct + '%';
+    el.className   = 'summary-pct ' +
+      (pct === 0 ? 'pct-zero' : pct < 40 ? 'pct-low' : pct < 80 ? 'pct-mid' : 'pct-high');
+    document.getElementById('summary-bar').style.width  = pct + '%';
+    document.getElementById('summary-count').textContent = `${done} / ${total} habitudes`;
+    const badge   = document.getElementById('streak-badge');
+    const perfect = document.getElementById('perfect-msg');
+    if (pct === 100) {
+      badge.textContent   = '🏆 Journée parfaite !';
+      perfect.style.display = 'block';
+    } else if (pct >= 70) {
+      badge.textContent   = '🔥 En feu ! Continue !';
+      perfect.style.display = 'none';
+    } else if (pct >= 40) {
+      badge.textContent   = '💪 Bonne dynamique !';
+      perfect.style.display = 'none';
+    } else {
+      badge.textContent   = '⚡ La journée commence !';
+      perfect.style.display = 'none';
+    }
+  }
+
+  function toggleRun() {
+    if (getRunSec() >= RUN_GOAL) return;
+    if (runOn) {
+      runSec = getRunSec(); runStartedAt = null;
+      clearInterval(runTid); runOn = false; setRunBtn('go');
+      refreshRunDisplay();
+    } else {
+      runStartedAt = Date.now(); runOn = true; setRunBtn('pause');
+      runTid = setInterval(() => {
+        refreshRunDisplay();
+        if (getRunSec() >= RUN_GOAL) {
+          runSec = RUN_GOAL; runStartedAt = null;
+          clearInterval(runTid); runOn = false; setRunBtn('done');
+          showToast('🏃 20 min terminées ! Objectif atteint !');
+          if (navigator.vibrate) navigator.vibrate([100,60,100]);
+        }
+      }, 1000);
+    }
+  }
+  function refreshRunDisplay() {
+    const s = getRunSec();
+    const el = document.getElementById('run-time');
+    el.textContent = p2(Math.floor(s/60)) + ':' + p2(s%60);
+    el.classList.toggle('goal-done', s >= RUN_GOAL);
+    document.getElementById('run-bar').style.width = Math.min(100, s / RUN_GOAL * 100) + '%';
+  }
+  function resetRun() {
+    clearInterval(runTid); runOn = false; runSec = 0; runStartedAt = null;
+    setRunBtn('go'); refreshRunDisplay();
+  }
+  function setRunBtn(s) {
+    const b = document.getElementById('run-btn');
+    if (s==='go')    { b.className='t-btn btn-go';    b.textContent='▶ Start'; }
+    if (s==='pause') { b.className='t-btn btn-pause'; b.textContent='⏸ Stop';  }
+    if (s==='done')  { b.className='t-btn btn-go';    b.textContent='✓ 20min !'; }
+  }
+
+  function toggleWork() {
+    if (getWorkSec() >= WORK_GOAL) return;
+    if (workOn) {
+      workSec = getWorkSec(); workStartedAt = null;
+      clearInterval(workTid); workOn = false; setWorkBtn('go');
+      refreshWorkDisplay();
+    } else {
+      workStartedAt = Date.now(); workOn = true; setWorkBtn('pause');
+      workTid = setInterval(() => {
+        refreshWorkDisplay();
+        if (getWorkSec() >= WORK_GOAL) {
+          workSec = WORK_GOAL; workStartedAt = null;
+          clearInterval(workTid); workOn = false; setWorkBtn('done');
+          showToast('💻 10 heures de Deep Work ! Légendaire !');
+          if (navigator.vibrate) navigator.vibrate([200,80,200,80,200]);
+        }
+      }, 1000);
+    }
+  }
+  function refreshWorkDisplay() {
+    const s = getWorkSec();
+    const h = Math.floor(s/3600);
+    const m = Math.floor((s%3600)/60);
+    const el = document.getElementById('work-time');
+    el.textContent = p2(h)+':'+p2(m)+':'+p2(s%60);
+    el.classList.toggle('goal-done', s >= WORK_GOAL);
+    document.getElementById('work-bar').style.width = Math.min(100, s / WORK_GOAL * 100) + '%';
+  }
+  function resetWork() {
+    clearInterval(workTid); workOn = false; workSec = 0; workStartedAt = null;
+    setWorkBtn('go'); refreshWorkDisplay();
+  }
+  function setWorkBtn(s) {
+    const b = document.getElementById('work-btn');
+    if (s==='go')    { b.className='t-btn btn-go';    b.textContent='▶ Start'; }
+    if (s==='pause') { b.className='t-btn btn-pause'; b.textContent='⏸ Pause'; }
+    if (s==='done')  { b.className='t-btn btn-go';    b.textContent='✓ 10h !'; }
+  }
+
+  function todayKey() {
+    const d = new Date();
+    return `dh_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+  }
+  function saveData(silent = false) {
+    localStorage.setItem(todayKey(), JSON.stringify({
+      states,
+      runSec: getRunSec(), runOn, runStartedAt,
+      workSec: getWorkSec(), workOn, workStartedAt
+    }));
+    if (!silent) showToast('✅ Données sauvegardées !');
+  }
+  function loadData() {
     try {
-      const parts = k.split('_');             // ['dh', year, month, day]
-      const date  = new Date(+parts[1], +parts[2], +parts[3]);
-      date.setHours(0, 0, 0, 0);
-      const data  = JSON.parse(localStorage.getItem(k));
-      const done  = Array.isArray(data.states) ? data.states.filter(Boolean).length : 0;
-      entries.push({ key: k, date, data, done });
+      const raw = localStorage.getItem(todayKey());
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (Array.isArray(d.states) && d.states.length === HABITS.length) states = d.states;
+      if (typeof d.runSec  === 'number') runSec  = d.runSec;
+      if (typeof d.workSec === 'number') workSec = d.workSec;
+
+      if (d.runOn && d.runStartedAt) {
+        runOn = true; runStartedAt = d.runStartedAt;
+        if (getRunSec() < RUN_GOAL) {
+          setRunBtn('pause');
+          runTid = setInterval(() => {
+            refreshRunDisplay();
+            if (getRunSec() >= RUN_GOAL) {
+              runSec = RUN_GOAL; runStartedAt = null;
+              clearInterval(runTid); runOn = false; setRunBtn('done');
+              showToast('🏃 20 min terminées ! Objectif atteint !');
+              if (navigator.vibrate) navigator.vibrate([100,60,100]);
+            }
+          }, 1000);
+        } else {
+          runSec = RUN_GOAL; runOn = false; runStartedAt = null; setRunBtn('done');
+        }
+      } else if (runSec >= RUN_GOAL) setRunBtn('done');
+
+      if (d.workOn && d.workStartedAt) {
+        workOn = true; workStartedAt = d.workStartedAt;
+        if (getWorkSec() < WORK_GOAL) {
+          setWorkBtn('pause');
+          workTid = setInterval(() => {
+            refreshWorkDisplay();
+            if (getWorkSec() >= WORK_GOAL) {
+              workSec = WORK_GOAL; workStartedAt = null;
+              clearInterval(workTid); workOn = false; setWorkBtn('done');
+              showToast('💻 10 heures de Deep Work ! Légendaire !');
+              if (navigator.vibrate) navigator.vibrate([200,80,200,80,200]);
+            }
+          }, 1000);
+        } else {
+          workSec = WORK_GOAL; workOn = false; workStartedAt = null; setWorkBtn('done');
+        }
+      } else if (workSec >= WORK_GOAL) setWorkBtn('done');
     } catch(e) {}
   }
-  return entries.sort((a, b) => a.date - b.date);
-}
 
-function calcStreak(entries) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  let streak = 0, check = new Date(today);
-  while (true) {
-    const k = `dh_${check.getFullYear()}_${check.getMonth()}_${check.getDate()}`;
-    const e = entries.find(x => x.key === k);
-    if (!e || e.done === 0) break;
-    streak++;
-    check.setDate(check.getDate() - 1);
+  function loadAllEntries() {
+    const entries = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith('dh_')) continue;
+      try {
+        const parts = k.split('_');
+        const date  = new Date(+parts[1], +parts[2], +parts[3]);
+        date.setHours(0, 0, 0, 0);
+        const data  = JSON.parse(localStorage.getItem(k));
+        const done  = Array.isArray(data.states) ? data.states.filter(Boolean).length : 0;
+        entries.push({ key: k, date, data, done });
+      } catch(e) {}
+    }
+    return entries.sort((a, b) => a.date - b.date);
   }
-  return streak;
-}
 
-function calcBestStreak(entries) {
-  let best = 0, cur = 0, prev = null;
-  for (const e of entries) {
-    if (e.done === 0) { cur = 0; prev = null; continue; }
-    const diff = prev ? Math.round((e.date - prev) / 86400000) : 0;
-    cur = diff === 1 ? cur + 1 : 1;
-    best = Math.max(best, cur);
-    prev = e.date;
+  function calcStreak(entries) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    let streak = 0, check = new Date(today);
+    while (true) {
+      const k = `dh_${check.getFullYear()}_${check.getMonth()}_${check.getDate()}`;
+      const e = entries.find(x => x.key === k);
+      if (!e || e.done === 0) break;
+      streak++;
+      check.setDate(check.getDate() - 1);
+    }
+    return streak;
   }
-  return best;
-}
 
-function renderStats() {
-  const entries = loadAllEntries();
-  const total   = entries.length;
+  function calcBestStreak(entries) {
+    let best = 0, cur = 0, prev = null;
+    for (const e of entries) {
+      if (e.done === 0) { cur = 0; prev = null; continue; }
+      const diff = prev ? Math.round((e.date - prev) / 86400000) : 0;
+      cur = diff === 1 ? cur + 1 : 1;
+      best = Math.max(best, cur);
+      prev = e.date;
+    }
+    return best;
+  }
 
-  if (total === 0) {
-    document.getElementById('s-days').textContent   = '0';
-    document.getElementById('s-streak').textContent = '0';
-    document.getElementById('s-best').textContent   = '0';
-    document.getElementById('s-avg').textContent    = '—';
-    document.getElementById('habit-stats').innerHTML =
-      `<div class="no-data">
-        <span class="no-data-icon">📊</span>
-        Commence à tracker tes habitudes<br>pour voir tes stats apparaître ici !
-       </div>`;
+  function renderStats() {
+    const entries = loadAllEntries();
+    const total   = entries.length;
+    if (total === 0) {
+      document.getElementById('s-days').textContent   = '0';
+      document.getElementById('s-streak').textContent = '0';
+      document.getElementById('s-best').textContent   = '0';
+      document.getElementById('s-avg').textContent    = '—';
+      document.getElementById('habit-stats').innerHTML =
+        `<div class="no-data"><span class="no-data-icon">📊</span>Commence à tracker tes habitudes<br>pour voir tes stats apparaître ici !</div>`;
+      renderWeekDots(entries);
+      return;
+    }
+    const streak  = calcStreak(entries);
+    const best    = calcBestStreak(entries);
+    const sumDone = entries.reduce((acc, e) => acc + e.done, 0);
+    const avgPct  = Math.round(sumDone / (total * HABITS.length) * 100);
+    document.getElementById('s-days').textContent   = total;
+    document.getElementById('s-streak').textContent = streak + ' j';
+    document.getElementById('s-best').textContent   = best   + ' j';
+    document.getElementById('s-avg').textContent    = avgPct + '%';
+    const counts = HABITS.map((_, i) =>
+      entries.filter(e => Array.isArray(e.data.states) && e.data.states[i]).length
+    );
+    document.getElementById('habit-stats').innerHTML = HABITS.map((h, i) => {
+      const pct = Math.round(counts[i] / total * 100);
+      return `<div class="hstat-row"><div class="hstat-top"><div class="hstat-left"><span class="hstat-emoji">${h.emoji}</span><span
+  class="hstat-name">${h.label}</span></div><span class="hstat-pct">${pct}%</span></div><div class="hstat-track"><div class="hstat-fill"
+  style="width:${pct}%"></div></div></div>`;
+    }).join('');
     renderWeekDots(entries);
-    return;
   }
 
-  const streak = calcStreak(entries);
-  const best   = calcBestStreak(entries);
-  const sumDone = entries.reduce((acc, e) => acc + e.done, 0);
-  const avgPct  = Math.round(sumDone / (total * HABITS.length) * 100);
-
-  document.getElementById('s-days').textContent   = total;
-  document.getElementById('s-streak').textContent = streak + ' j';
-  document.getElementById('s-best').textContent   = best   + ' j';
-  document.getElementById('s-avg').textContent    = avgPct + '%';
-
-  // Par habitude
-  const counts = HABITS.map((_, i) =>
-    entries.filter(e => Array.isArray(e.data.states) && e.data.states[i]).length
-  );
-  document.getElementById('habit-stats').innerHTML = HABITS.map((h, i) => {
-    const pct = Math.round(counts[i] / total * 100);
-    return `
-      <div class="hstat-row">
-        <div class="hstat-top">
-          <div class="hstat-left">
-            <span class="hstat-emoji">${h.emoji}</span>
-            <span class="hstat-name">${h.label}</span>
-          </div>
-          <span class="hstat-pct">${pct}%</span>
-        </div>
-        <div class="hstat-track">
-          <div class="hstat-fill" style="width:${pct}%"></div>
-        </div>
-      </div>`;
-  }).join('');
-
-  renderWeekDots(entries);
-}
-
-function renderWeekDots(entries) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  let html = '';
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const k = `dh_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
-    const e = entries.find(x => x.key === k);
-    const pct = e ? Math.round(e.done / HABITS.length * 100) : -1;
-
-    let bg, fg, label;
-    if      (pct < 0)   { bg='var(--surf2)';                    fg='var(--border)'; label='·'; }
-    else if (pct >= 80) { bg='rgba(52,211,153,.22)';            fg='var(--green)';  label=pct+'%'; }
-    else if (pct >= 50) { bg='rgba(34,211,238,.18)';            fg='var(--cyan)';   label=pct+'%'; }
-    else if (pct >= 20) { bg='rgba(251,191,36,.18)';            fg='var(--amber)';  label=pct+'%'; }
-    else                { bg='rgba(248,113,113,.15)';           fg='var(--red)';    label=pct+'%'; }
-
-    const isToday = i === 0;
-    const outline = isToday ? `outline:2px solid ${fg};outline-offset:2px;` : '';
-    const lblStyle = isToday ? 'color:var(--text);font-weight:700;' : '';
-
-    html += `
-      <div class="week-day">
-        <div class="week-dot" style="background:${bg};color:${fg};${outline}">${label}</div>
-        <div class="week-dot-lbl" style="${lblStyle}">${DAYS_S[d.getDay()]}</div>
-      </div>`;
+  function renderWeekDots(entries) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    let html = '';
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const k = `dh_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+      const e = entries.find(x => x.key === k);
+      const pct = e ? Math.round(e.done / HABITS.length * 100) : -1;
+      let bg, fg, label;
+      if      (pct < 0)   { bg='var(--surf2)';             fg='var(--border)'; label='·'; }
+      else if (pct >= 80) { bg='rgba(52,211,153,.22)';     fg='var(--green)';  label=pct+'%'; }
+      else if (pct >= 50) { bg='rgba(34,211,238,.18)';     fg='var(--cyan)';   label=pct+'%'; }
+      else if (pct >= 20) { bg='rgba(251,191,36,.18)';     fg='var(--amber)';  label=pct+'%'; }
+      else                { bg='rgba(248,113,113,.15)';    fg='var(--red)';    label=pct+'%'; }
+      const isToday  = i === 0;
+      const outline  = isToday ? `outline:2px solid ${fg};outline-offset:2px;` : '';
+      const lblStyle = isToday ? 'color:var(--text);font-weight:700;' : '';
+      html += `<div class="week-day"><div class="week-dot" style="background:${bg};color:${fg};${outline}">${label}</div><div class="week-dot-lbl"
+  style="${lblStyle}">${DAYS_S[d.getDay()]}</div></div>`;
+    }
+    document.getElementById('week-dots').innerHTML = html;
   }
-  document.getElementById('week-dots').innerHTML = html;
-}
 
-/* ── MODAL ────────────────────────────────────────── */
-function openModal()  { document.getElementById('modal').classList.add('open'); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-function onModalBgClick(e) {
-  if (e.target === document.getElementById('modal')) closeModal();
-}
-function confirmNewDay() {
-  states = HABITS.map(() => false);
-  resetRun(); resetWork();
-  renderHabits(); refreshSummary();
-  closeModal();
-  showToast("🌅 Nouvelle journée ! Let's go !");
-}
+  function openModal()  { document.getElementById('modal').classList.add('open'); }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  function onModalBgClick(e) {
+    if (e.target === document.getElementById('modal')) closeModal();
+  }
+  function confirmNewDay() {
+    states = HABITS.map(() => false);
+    resetRun(); resetWork();
+    renderHabits(); refreshSummary();
+    closeModal();
+    showToast("🌅 Nouvelle journée ! Let's go !");
+  }
 
-/* ── TOAST ────────────────────────────────────────── */
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
-}
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
 
-/* ── UTILS ────────────────────────────────────────── */
-function p2(n) { return String(n).padStart(2, '0'); }
+  function p2(n) { return String(n).padStart(2, '0'); }
 
-/* ── AUTO-SAVE ────────────────────────────────────── */
-setInterval(() => saveData(true), 60000);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') saveData(true);
-});
+  setInterval(() => saveData(true), 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      saveData(true);
+    } else {
+      refreshRunDisplay();
+      refreshWorkDisplay();
+    }
+  });
 
-init();
-</script>
-</body>
-</html>
+  init();
+  </script>
+  </body>
+  </html>
+  Fix chrono iOS 
