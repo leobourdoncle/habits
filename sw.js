@@ -7,7 +7,7 @@
    Pour forcer une mise à jour du cache, incrémente CACHE_VERSION.
    ============================================================ */
 
-const CACHE_VERSION = 'habitudes-v2';
+const CACHE_VERSION = 'habitudes-v3';
 
 // Fichiers de base à mettre en cache dès l'installation.
 const ASSETS = [
@@ -44,8 +44,12 @@ self.addEventListener('activate', (e) => {
 // Requêtes : réseau d'abord, puis cache si pas de connexion.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // Pour les fichiers de l'app (même origine), on revalide toujours auprès
+  // du serveur afin d'éviter de servir une version périmée après une MAJ.
+  const sameOrigin = new URL(e.request.url).origin === self.location.origin;
+  const req = sameOrigin ? new Request(e.request, { cache: 'no-cache' }) : e.request;
   e.respondWith(
-    fetch(e.request)
+    fetch(req)
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE_VERSION).then((c) => c.put(e.request, copy));
