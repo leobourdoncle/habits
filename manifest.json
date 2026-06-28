@@ -1,6 +1,6 @@
 {
-  "name": "Mes habitudes",
-  "short_name": "Habitudes",
+  "name": "Winstreak",
+  "short_name": "Winstreak",
   "description": "Suivi quotidien d'habitudes, simple et rapide.",
   "start_url": "./index.html",
   "scope": "./",

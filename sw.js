@@ -7,7 +7,7 @@
    Pour forcer une mise à jour du cache, incrémente CACHE_VERSION.
    ============================================================ */
 
-const CACHE_VERSION = 'habitudes-v4';
+const CACHE_VERSION = 'winstreak-v5';
 
 // Fichiers de base à mettre en cache dès l'installation.
 const ASSETS = [
