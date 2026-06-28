@@ -23,13 +23,17 @@ function todayTotal() { return habits.length; }
 
 /* ── Authentification ───────────────────────────────────── */
 
-// Envoie un lien magique de connexion à l'email donné.
-async function cloudSignIn(email) {
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.href.split('#')[0] },
-  });
-  if (error) throw error;
+// Connexion par email + mot de passe. Si le compte n'existe pas encore,
+// on le crée automatiquement (inscription instantanée, sans email).
+async function cloudAuth(email, password) {
+  const res = await sb.auth.signInWithPassword({ email, password });
+  if (!res.error) return;
+  // Échec de connexion → on tente de créer le compte.
+  const up = await sb.auth.signUp({ email, password });
+  if (up.error) {
+    // Compte existant mais mauvais mot de passe (ou autre erreur).
+    throw new Error('Email ou mot de passe incorrect.');
+  }
 }
 
 async function cloudSignOut() {
@@ -134,17 +138,21 @@ async function renderTeam() {
         <div class="card-header"><span class="card-icon">👥</span><span class="card-title">Version entre potes</span></div>
         <p style="font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.6">
           Connecte-toi pour voir le <strong>classement</strong> avec tes potes
-          (série 🔥 et % de réussite). Tu reçois un lien de connexion par email,
-          pas de mot de passe.</p>
+          (série 🔥 et % de réussite). Première fois ? Choisis simplement un mot de
+          passe : ton compte se crée tout seul.</p>
         <input class="name-input" id="cloud-email" type="email" placeholder="ton@email.com" style="width:100%;margin-bottom:10px" />
-        <button class="btn btn-primary" id="cloud-signin">📧 Recevoir mon lien de connexion</button>
+        <input class="name-input" id="cloud-pass" type="password" placeholder="Mot de passe" style="width:100%;margin-bottom:10px" />
+        <button class="btn btn-primary" id="cloud-signin">🔓 Connexion / Inscription</button>
         <p id="cloud-msg" style="font-size:13px;color:var(--accent2);margin-top:12px;text-align:center"></p>
       </div>`;
     document.getElementById('cloud-signin').addEventListener('click', async () => {
       const email = document.getElementById('cloud-email').value;
+      const pass  = document.getElementById('cloud-pass').value;
       const msg = document.getElementById('cloud-msg');
-      if (!email) { msg.textContent = 'Entre ton email.'; return; }
-      try { await cloudSignIn(email); msg.textContent = '✅ Lien envoyé ! Regarde tes emails.'; }
+      if (!email || !pass) { msg.textContent = 'Entre ton email et un mot de passe.'; return; }
+      if (pass.length < 6) { msg.textContent = 'Mot de passe : 6 caractères minimum.'; return; }
+      msg.textContent = '⏳ Connexion…';
+      try { await cloudAuth(email, pass); /* onAuthStateChange réaffiche la page */ }
       catch (e) { msg.textContent = '❌ ' + e.message; }
     });
     return;
