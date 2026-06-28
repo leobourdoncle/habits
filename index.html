@@ -9,6 +9,9 @@
   <meta name="apple-mobile-web-app-title" content="Habitudes" />
   <meta name="theme-color" content="#080810" />
   <title>Mes habitudes ⚡</title>
+  <!-- PWA : installation sur l'écran d'accueil + hors-ligne -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -140,5 +143,14 @@
 <script src="storage.js"></script>
 <script src="stats.js"></script>
 <script src="app.js"></script>
+
+<!-- Enregistrement du service worker (mode hors-ligne / app installable) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>
