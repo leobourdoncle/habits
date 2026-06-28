@@ -7,7 +7,7 @@
    Pour forcer une mise à jour du cache, incrémente CACHE_VERSION.
    ============================================================ */
 
-const CACHE_VERSION = 'habitudes-v1';
+const CACHE_VERSION = 'habitudes-v2';
 
 // Fichiers de base à mettre en cache dès l'installation.
 const ASSETS = [
@@ -18,6 +18,8 @@ const ASSETS = [
   './storage.js',
   './stats.js',
   './app.js',
+  './supabase-config.js',
+  './cloud.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',

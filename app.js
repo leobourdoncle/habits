@@ -53,6 +53,7 @@ function switchTab(tab) {
   // Affichage des panneaux
   $('#panel-today').style.display    = tab === 'today'    ? '' : 'none';
   $('#panel-stats').style.display    = tab === 'stats'    ? '' : 'none';
+  $('#panel-team').style.display     = tab === 'team'     ? '' : 'none';
   $('#panel-settings').style.display = tab === 'settings' ? '' : 'none';
 
   // Onglet actif
@@ -62,6 +63,8 @@ function switchTab(tab) {
   // Rendu paresseux des onglets
   if (tab === 'stats')    renderStats();
   if (tab === 'settings') renderSettings();
+  // renderTeam est défini dans cloud.js (chargé après app.js)
+  if (tab === 'team' && typeof renderTeam === 'function') renderTeam();
 }
 
 /* ============================================================
@@ -110,6 +113,9 @@ function toggleHabit(id, row) {
   if (navigator.vibrate) navigator.vibrate(20);
 
   refreshSummary();
+
+  // Publie la complétion du jour dans le cloud si connecté (cloud.js)
+  if (typeof cloudPushToday === 'function') cloudPushToday();
 }
 
 function refreshSummary() {
